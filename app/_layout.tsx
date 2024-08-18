@@ -11,7 +11,7 @@ export default function RootLayout() {
   return (
     <NavigationContainer independent={true}>
       <AppProvider>
-        <View style={{ flex: 1, maxWidth: 370 }}>
+        <View style={{ flex: 1, maxWidth: 390 }}>
           <AppContainer />
         </View>
       </AppProvider>

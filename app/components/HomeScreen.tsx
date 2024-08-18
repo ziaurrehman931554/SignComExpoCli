@@ -36,16 +36,11 @@ export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   // Define known date formats
-  const knownFormats = [
-    "M/d/yyyy, h:mm:ss a", // Example format for "8/3/2024, 11:52:17 AM"
-    "yyyy-MM-ddTHH:mm:ssZ", // ISO format
-  ];
+  const knownFormats = ["M/d/yyyy, h:mm:ss a", "yyyy-MM-ddTHH:mm:ssZ"];
 
   const formatDate = (dateString: string) => {
-    console.log("-------------------called for: ", dateString);
     let date;
 
-    // Try to parse the dateString with known formats
     for (const formatString of knownFormats) {
       try {
         date = parse(dateString, formatString, new Date());
@@ -57,32 +52,22 @@ export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
       }
     }
 
-    if (isValid(date)) console.log("---------------format valid");
-    else console.log("------------------------format invalid");
-
-    // Check if date is valid
     if (date && isValid(date)) {
       if (isToday(date)) {
-        console.log("------------------returning today");
         return `Today at ${format(date, "h:mm a")}`;
       }
 
       if (isYesterday(date)) {
-        console.log("------------------returning yesterday");
         return `Yesterday at ${format(date, "h:mm a")}`;
       }
 
       if (isThisWeek(date)) {
-        console.log("------------------returning this week");
-        return format(date, "EEEE"); // Weekday name
+        return format(date, "EEEE");
       }
 
-      console.log("------------------returning default");
-      return format(date, "M/d/yyyy, h:mm a"); // Default format
+      return format(date, "M/d/yyyy, h:mm a");
     }
 
-    // Return the original string if it's not a valid date
-    console.log("------------------returning original");
     return dateString;
   };
 
@@ -92,7 +77,6 @@ export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
         (item: any) => item.Name !== name
       );
       updateUserByEmail(userToken.email, { favorites: updatedFavorites });
-      console.log(userToken.favorites);
     };
     return (
       <ScrollView
@@ -206,7 +190,7 @@ export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
           style={styles.menuContainer}
           onPress={() => navigation.navigate("Drawer")}
         >
-          <Image source={require("../assets/menu.png")} style={styles.menu} />
+          <Image source={require("../assets/menu_b.png")} style={styles.menu} />
         </TouchableOpacity>
         <Text style={[styles.hi, appStyles.inverseText]}>Hi,</Text>
         <Text style={[styles.name, appStyles.colorText]}>{userToken.name}</Text>
@@ -252,9 +236,12 @@ export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
                 {isEditing ? (
                   <Text style={[styles.headingEdit, appStyles.text]}>Done</Text>
                 ) : (
-                  <Text style={[styles.headingEdit, appStyles.text]}>
-                    Edit {">"}
-                  </Text>
+                  <View>
+                    <Image
+                      source={require("../assets/edit_box.png")}
+                      style={styles.editImg}
+                    />
+                  </View>
                 )}
               </TouchableOpacity>
             </View>
@@ -267,14 +254,17 @@ export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
           <View style={styles.recentContainer}>
             <View style={styles.heading}>
               <Text style={[styles.headingText, appStyles.text]}>Recent</Text>
-              <View style={{ flexDirection: "row", gap: 5 }}>
+              <View style={{ flexDirection: "row", gap: 9 }}>
                 {!isEditing && (
                   <TouchableOpacity
                     onPress={() => navigation.navigate("History")}
                   >
-                    <Text style={[styles.headingEdit, appStyles.text]}>
-                      History {">"}
-                    </Text>
+                    <View>
+                      <Image
+                        source={require("../assets/history_b.png")}
+                        style={styles.editImg}
+                      />
+                    </View>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={() => setIsEditing((prev) => !prev)}>
@@ -283,9 +273,12 @@ export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
                       Done
                     </Text>
                   ) : (
-                    <Text style={[styles.headingEdit, appStyles.text]}>
-                      Edit {">"}
-                    </Text>
+                    <View>
+                      <Image
+                        source={require("../assets/edit_box.png")}
+                        style={styles.editImg}
+                      />
+                    </View>
                   )}
                 </TouchableOpacity>
               </View>
@@ -319,8 +312,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   menu: {
-    height: 30,
-    width: 30,
+    height: 40,
+    width: 40,
     resizeMode: "cover",
   },
   hi: {
@@ -334,6 +327,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginTop: Platform.OS === "ios" ? -7 : -20,
     fontWeight: "bold",
+  },
+  editImg: {
+    height: 18,
+    width: 18,
   },
   searchContainer: {
     width: "100%",

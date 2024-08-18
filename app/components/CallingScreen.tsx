@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Platform } from "react-native";
-import WebView from "react-native-webview";
+import { StyleSheet, View, Platform, Button } from "react-native";
+// import WebView from "react-native-webview";
 
 interface CallingScreenProps {
   userToken: any;
@@ -17,14 +17,14 @@ export default function CallingScreen({
 }: CallingScreenProps) {
   const { id } = route.params || {};
   const [channelName, setChannelName] = useState("");
-  const [url, setUrl] = useState("https://192.168.100.26");
+  const [url, setUrl] = useState("https://192.168.100.3:443");
   const [handleSwitch, setHandleSwitch] = useState(false);
+  const option = userToken.type === "normal" ? "gesture" : "speech";
   const platform = Platform.OS;
   let startTime: number | null = null;
 
   useEffect(() => {
-    console.log(id);
-    setUrl(`${url}/via/${id}`);
+    setUrl(`${url}/via/${id}/${option}`);
     setChannelName(id);
     setHandleSwitch(true);
   }, [id]);
@@ -35,8 +35,6 @@ export default function CallingScreen({
 
       if (currentUrl.startsWith("https://192.168.100.26/via/")) {
         if (startTime == null) startTime = new Date().getTime();
-        console.log(startTime);
-        console.log(currentUrl);
       } else {
         if (startTime !== null) {
           const endTime = new Date().getTime();
@@ -78,8 +76,6 @@ export default function CallingScreen({
 
     if (currentUrl.startsWith("https://192.168.100.26/via/")) {
       if (startTime == null) startTime = new Date().getTime();
-      console.log(startTime);
-      console.log(currentUrl);
     } else if (currentUrl === "https://192.168.100.26/") {
       if (startTime !== null) {
         const endTime = new Date().getTime();
@@ -103,27 +99,31 @@ export default function CallingScreen({
   return (
     <View style={styles.container}>
       {handleSwitch && platform !== "web" && (
-        <WebView
-          source={{ uri: url }}
-          style={styles.webview}
-          javaScriptEnabled={true}
-          mediaPlaybackRequiresUserAction={false}
-          allowsInlineMediaPlayback={true}
-          injectedJavaScript={injectedJavaScript}
-          onNavigationStateChange={handleNavigationStateChange}
-          onMessage={handleMessage}
-          javaScriptCanOpenWindowsAutomatically={true}
-          onReceivedSslError={(event: any) => {
-            console.warn("SSL Error: ", event.nativeEvent);
-            event.preventDefault();
-            event.nativeEvent.handler.proceed();
-          }}
-        />
+        <View style={{ paddingTop: 30 }}>
+          <Button title="b" onPress={() => navigation.goBack()} />
+        </View>
+        // <WebView
+        //   source={{ uri: url }}
+        //   style={styles.webview}
+        //   javaScriptEnabled={true}
+        //   mediaPlaybackRequiresUserAction={false}
+        //   allowsInlineMediaPlayback={true}
+        //   injectedJavaScript={injectedJavaScript}
+        //   onNavigationStateChange={handleNavigationStateChange}
+        //   onMessage={handleMessage}
+        //   javaScriptCanOpenWindowsAutomatically={true}
+        //   onReceivedSslError={(event: any) => {
+        //     console.warn("SSL Error: ", event.nativeEvent);
+        //     event.preventDefault();
+        //     event.nativeEvent.handler.proceed();
+        //   }}
+        // />
       )}
       {handleSwitch && platform === "web" && (
         <iframe
           src={url}
           style={{ flex: 1, width: "100%", height: "100%", border: "none" }}
+          allow="camera; microphone"
         />
       )}
     </View>

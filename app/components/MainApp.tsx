@@ -3,7 +3,7 @@
 /* eslint-disable quotes */
 import React, { useContext, useEffect, useState } from "react";
 import { useStyle } from "../AppContext";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -12,6 +12,7 @@ import { FIREBASE_AUTH } from "../FirebaseConfig";
 import Home from "./Home";
 import Login from "./Login";
 import { AuthContext } from "../AuthProvider";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface MainAppProps {
   reset: () => void;
@@ -20,6 +21,7 @@ interface MainAppProps {
 export default function MainApp({ reset }: MainAppProps) {
   const { appStyles } = useStyle();
   const authContext = useContext(AuthContext);
+  const insets = useSafeAreaInsets();
 
   if (!authContext) {
     throw new Error("Auth Provides not initialized or used correctly");
@@ -30,7 +32,7 @@ export default function MainApp({ reset }: MainAppProps) {
 
   return (
     <View style={[appStyles.container, appStyles.background]}>
-      {checking && (
+      {checking ? (
         <View
           style={[
             appStyles.container,
@@ -39,11 +41,17 @@ export default function MainApp({ reset }: MainAppProps) {
         >
           <ActivityIndicator size={"large"} color={appStyles.text.color} />
         </View>
-      )}
-      {isAuthenticated && user ? (
+      ) : isAuthenticated && user ? (
         <Home onLogout={handleLogout} userToken={user.email || ""} />
       ) : (
-        <Login onLogin={handleLogin} reset={reset} />
+        <View
+          style={{
+            flex: 1,
+            paddingTop: Platform.OS === "ios" ? insets.top : 0,
+          }}
+        >
+          <Login onLogin={handleLogin} reset={reset} />
+        </View>
       )}
     </View>
   );

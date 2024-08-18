@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,10 @@ import {
   TextInput,
   Platform,
   Alert,
-} from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
-import {useNavigationState} from '@react-navigation/native';
-import {useStyle, useUser} from '../AppContext';
+} from "react-native";
+import RNPickerSelect from "react-native-picker-select";
+import { useNavigationState } from "@react-navigation/native";
+import { useStyle, useUser } from "../AppContext";
 
 interface SettingsScreenProps {
   userToken: any;
@@ -22,9 +22,9 @@ export default function SettingsScreen({
   userToken,
   navigation,
 }: SettingsScreenProps) {
-  const {updateUserByEmail} = useUser();
-  const {appStyles, theme} = useStyle();
-  const navigationState = useNavigationState(state => state);
+  const { updateUserByEmail } = useUser();
+  const { appStyles, theme } = useStyle();
+  const navigationState = useNavigationState((state) => state);
   const [isKBActive, setIsKBActive] = useState(false);
   const [hidePass, setHidePass] = useState(true);
   const [selectType, setSelectType] = useState(false);
@@ -38,15 +38,15 @@ export default function SettingsScreen({
   });
 
   const showAlert = (title: string, message: any) => {
-    Alert.alert(title, message, [{text: 'OK'}]);
+    Alert.alert(title, message, [{ text: "OK" }]);
   };
 
   const togglePasswordVisibility = () => {
-    setHidePass(prev => !prev);
+    setHidePass((prev) => !prev);
   };
 
   const handleInputChange = (fieldName: any, value: any) => {
-    setUser(prevUser => ({
+    setUser((prevUser) => ({
       ...prevUser,
       [fieldName]: value,
     }));
@@ -54,7 +54,7 @@ export default function SettingsScreen({
 
   const handleSave = () => {
     updateUserByEmail(userToken.email, user);
-    showAlert('Important', 'Changed Saved');
+    showAlert("Important", "Changed Saved");
     setTimeout(() => {
       navigation.goBack();
     }, 500);
@@ -65,19 +65,19 @@ export default function SettingsScreen({
       fontSize: 12,
       paddingVertical: 12,
       paddingHorizontal: 10,
-      color: '#909BB1',
-      alignItems: 'center',
+      color: "#909BB1",
+      alignItems: "center",
       borderRadius: 4,
-      textAlign: 'right',
+      textAlign: "right",
     },
     inputAndroid: {
       fontSize: 12,
       paddingVertical: 12,
       paddingHorizontal: 10,
-      color: '#909BB1',
-      alignItems: 'center',
+      color: "#909BB1",
+      alignItems: "center",
       borderRadius: 4,
-      textAlign: 'right',
+      textAlign: "right",
     },
   };
 
@@ -86,23 +86,26 @@ export default function SettingsScreen({
       {selectType && (
         <View style={[styles.selectContainer]}>
           <Text
-            style={[appStyles.text, styles.item, {backgroundColor: 'grey'}]}>
+            style={[styles.item, { backgroundColor: "grey", color: "white" }]}
+          >
             Current: <Text style={appStyles.colorText}>{user.type}</Text>
           </Text>
           <TouchableOpacity
             style={[appStyles.containerBack, styles.item]}
             onPress={() => {
-              handleInputChange('type', 'Normal');
+              handleInputChange("type", "Normal");
               setSelectType(false);
-            }}>
+            }}
+          >
             <Text style={[appStyles.text]}>Normal</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[appStyles.containerBack, styles.item]}
             onPress={() => {
-              handleInputChange('type', 'Special');
+              handleInputChange("type", "Special");
               setSelectType(false);
-            }}>
+            }}
+          >
             <Text style={[appStyles.text]}>Specially-abled</Text>
           </TouchableOpacity>
         </View>
@@ -110,7 +113,14 @@ export default function SettingsScreen({
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <View style={[styles.backBTNContainer, appStyles.colorBackground]}>
-            <Text>🔙</Text>
+            <Image
+              source={
+                theme === "light"
+                  ? require("../assets/back_w.png")
+                  : require("../assets/back_b.png")
+              }
+              style={styles.back}
+            />
           </View>
         </TouchableOpacity>
         <Text style={[styles.headerText, appStyles.text]}>Settings</Text>
@@ -123,19 +133,20 @@ export default function SettingsScreen({
           <View style={styles.profileImageContainer}>
             <View style={styles.imageContainer}>
               <Image
-                source={require('../assets/Profile.png')}
+                source={require("../assets/Profile.png")}
                 style={styles.image}
               />
             </View>
             <View
               style={[
                 styles.editContainer,
-                theme === 'dark'
-                  ? {backgroundColor: '#D9D9D9'}
+                theme === "dark"
+                  ? { backgroundColor: "#D9D9D9" }
                   : appStyles.colorBackground,
-              ]}>
+              ]}
+            >
               <Image
-                source={require('../assets/edit.png')}
+                source={require("../assets/edit_pen.png")}
                 style={styles.edit}
               />
             </View>
@@ -150,41 +161,54 @@ export default function SettingsScreen({
               placeholderTextColor={appStyles.text}
               placeholder="Enter Your name"
               value={user.Name}
-              onChangeText={text =>
-                handleInputChange('Name', text)
-              }></TextInput>
+              onChangeText={(text) => handleInputChange("Name", text)}
+            ></TextInput>
           </View>
           <View style={[styles.entityContainer, appStyles.containerBack]}>
             <Text style={[styles.entityName, appStyles.colorText]}>Email</Text>
             <TextInput
-              style={styles.entityValue}
-              placeholderTextColor={appStyles.text.color}
+              style={[styles.entityValue, appStyles.text]}
+              placeholderTextColor={appStyles.text}
               placeholder="Enter Your email"
               value={user.email}
-              onChangeText={text =>
-                handleInputChange('email', text)
-              }></TextInput>
+              onChangeText={(text) => handleInputChange("email", text)}
+            ></TextInput>
           </View>
           <View style={[styles.entityContainer, appStyles.containerBack]}>
-            <TouchableOpacity onPress={togglePasswordVisibility}>
+            <View
+              style={{ flexDirection: "row", gap: 5, alignItems: "center" }}
+            >
               <Text style={[styles.entityName, appStyles.colorText]}>
                 Password
               </Text>
-            </TouchableOpacity>
+              <TouchableOpacity onPress={togglePasswordVisibility}>
+                <Image
+                  source={
+                    hidePass
+                      ? theme === "light"
+                        ? require("../assets/pass_show_b.png")
+                        : require("../assets/pass_show_w.png")
+                      : theme === "light"
+                      ? require("../assets/pass_hide_b.png")
+                      : require("../assets/pass_hide_w.png")
+                  }
+                  style={styles.passIcon}
+                />
+              </TouchableOpacity>
+            </View>
             <TextInput
               style={[styles.entityValue, appStyles.text]}
               placeholderTextColor={appStyles.text}
               placeholder="Enter Your password"
               secureTextEntry={hidePass}
               value={user.password}
-              onChangeText={text =>
-                handleInputChange('password', text)
-              }></TextInput>
+              onChangeText={(text) => handleInputChange("password", text)}
+            ></TextInput>
           </View>
           <View style={[styles.entityContainer, appStyles.containerBack]}>
             <Text style={[styles.entityName, appStyles.colorText]}>Type</Text>
             <TouchableOpacity onPress={() => setSelectType(true)}>
-              <Text style={[styles.entityValue, appStyles.text]}>
+              <Text style={[styles.typeEntryValue, appStyles.text]}>
                 {user.type}
               </Text>
             </TouchableOpacity>
@@ -204,7 +228,8 @@ export default function SettingsScreen({
         {!isKBActive && (
           <TouchableOpacity
             style={[styles.saveContainer, appStyles.colorBackground]}
-            onPress={handleSave}>
+            onPress={handleSave}
+          >
             <Text style={[styles.save, appStyles.text]}>Save</Text>
           </TouchableOpacity>
         )}
@@ -218,79 +243,89 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 10,
   },
   backBTNContainer: {
     width: 70,
     height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 50,
     marginLeft: 10,
   },
   headerText: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
-    width: '105%',
-    textAlign: 'center',
+    width: "105%",
+    textAlign: "center",
     fontSize: 20,
-    alignSelf: 'center',
+    alignSelf: "center",
     opacity: 0.4,
     zIndex: -1,
   },
   bodyContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 5,
   },
   infoContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  passIcon: {
+    height: 20,
+    width: 20,
+    alignSelf: "center",
+  },
+  back: {
+    height: 27,
+    width: 27,
+    padding: 0,
   },
   YPI: {
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
     marginVertical: 15,
     opacity: 0.7,
   },
   profileImageContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   imageContainer: {
     width: 170,
     height: 170,
     borderRadius: 100,
-    alignItems: 'center',
-    justifyContent: 'center',
-    display: 'flex',
+    alignItems: "center",
+    justifyContent: "center",
+    display: "flex",
     padding: 5,
-    backgroundColor: '#D9D9D9',
+    backgroundColor: "#D9D9D9",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   editContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 5,
     right: 5,
     width: 40,
     height: 40,
     borderRadius: 25,
-    borderColor: 'white',
+    borderColor: "white",
     borderWidth: 2,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   edit: {
     width: 20,
@@ -300,35 +335,44 @@ const styles = StyleSheet.create({
     fontSize: 17,
     marginBottom: 10,
     lineHeight: 22,
-    textAlign: 'left',
-    width: '95%',
+    textAlign: "left",
+    width: "95%",
     padding: 10,
     marginTop: 30,
     opacity: 0.7,
   },
   entityContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '95%',
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "95%",
     margin: 5,
-    backgroundColor: '#F4F4F4',
+    backgroundColor: "#F4F4F4",
     padding: 15,
     borderRadius: 10,
     height: 50,
   },
   entityName: {
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   entityValue: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     height: 50,
     fontSize: 12,
-    textAlign: 'right',
+    textAlign: "right",
+    width: 200,
+    opacity: 0.7,
+  },
+  typeEntryValue: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 12,
+    textAlign: "right",
     width: 200,
     opacity: 0.7,
   },
@@ -336,31 +380,33 @@ const styles = StyleSheet.create({
     height: 60,
     width: 175,
     borderRadius: 50,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     margin: 5,
   },
   save: {
     fontSize: 17,
   },
   selectContainer: {
-    position: 'absolute',
-    height: '100%',
-    width: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    flex: 1,
+    position: "absolute",
+    height: "110%",
+    width: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     zIndex: 10,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
   item: {
     padding: 10,
     marginBottom: 10,
     borderRadius: 10,
-    width: '90%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "90%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
   },
 });

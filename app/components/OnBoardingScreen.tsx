@@ -55,7 +55,6 @@ const OnBoardingScreen: React.FC<OnBoardingScreenProps> = ({ onComplete }) => {
   const { appStyles, theme, toggleAppColor } = useStyle();
 
   useEffect(() => {
-    console.log(theme);
     Animated.spring(scrollX, {
       toValue: activeIndex * Dimensions.get("window").width,
       useNativeDriver: true,
@@ -167,11 +166,11 @@ const OnBoardingScreen: React.FC<OnBoardingScreenProps> = ({ onComplete }) => {
             </Text>
           </View>
           <View style={styles.buttonContainer}>
-            <View style={[styles.button, appStyles.colorBackground]}>
-              <TouchableOpacity onPress={handleNext}>
+            <TouchableOpacity onPress={handleNext}>
+              <View style={[styles.button, appStyles.colorBackground]}>
                 <Text style={appStyles.text}>Get Started</Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </ImageBackground>
       ) : (
@@ -209,15 +208,15 @@ const OnBoardingScreen: React.FC<OnBoardingScreenProps> = ({ onComplete }) => {
             )}
           </View>
           <View style={styles.buttonContainer}>
-            <View
-              style={[
-                styles.button,
-                activeIndex !== OnBoardingData.length
-                  ? styles.black
-                  : appStyles.colorBackground,
-              ]}
-            >
-              <TouchableOpacity onPress={onComplete}>
+            <TouchableOpacity onPress={onComplete}>
+              <View
+                style={[
+                  styles.button,
+                  activeIndex !== OnBoardingData.length
+                    ? styles.black
+                    : appStyles.colorBackground,
+                ]}
+              >
                 <Text
                   style={{
                     color:
@@ -226,8 +225,8 @@ const OnBoardingScreen: React.FC<OnBoardingScreenProps> = ({ onComplete }) => {
                 >
                   Continue
                 </Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       )}

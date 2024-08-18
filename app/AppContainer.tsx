@@ -2,15 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { useStyle } from "./AppContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { StatusBar } from "react-native";
 import OnBoardingScreen from "./components/OnBoardingScreen";
 import { AuthProvider } from "./AuthProvider";
 import MainApp from "./components/MainApp";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AppContainer() {
   const { appStyles } = useStyle();
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     async function checkOnboarding() {
@@ -46,11 +48,18 @@ export default function AppContainer() {
     <AuthProvider>
       <View style={[appStyles.background, appStyles.container]}>
         {showOnboarding ? (
-          <OnBoardingScreen onComplete={handleOnboardingComplete} />
+          <View
+            style={[
+              appStyles.container,
+              { paddingTop: Platform.OS === "ios" ? insets.top : 0 },
+            ]}
+          >
+            <OnBoardingScreen onComplete={handleOnboardingComplete} />
+          </View>
         ) : (
           <MainApp reset={handleReset} />
         )}
-        <StatusBar barStyle={"default"} />
+        <StatusBar barStyle={"light-content"} />
       </View>
     </AuthProvider>
   );

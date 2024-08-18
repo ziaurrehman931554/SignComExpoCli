@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,55 +11,57 @@ import {
   ActivityIndicator,
   Alert,
   Keyboard,
-} from 'react-native';
-import {StatusBar} from 'react-native';
-import {useStyle, useUser} from '../AppContext';
+} from "react-native";
+import { StatusBar } from "react-native";
+import { useStyle, useUser } from "../AppContext";
 
-import {FIREBASE_AUTH, USES_REF} from '../FirebaseConfig';
+import { FIREBASE_AUTH, USES_REF } from "../FirebaseConfig";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-} from 'firebase/auth';
-import {addDoc} from 'firebase/firestore';
+} from "firebase/auth";
+import { addDoc } from "firebase/firestore";
 
 interface LoginProps {
   onLogin: (email: string) => void;
   reset: () => void;
 }
 
-export default function Login({onLogin, reset}: LoginProps): JSX.Element {
-  const {appStyles, theme} = useStyle();
-  const {getUserData, addUserToData} = useUser();
+export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
+  const { appStyles, theme } = useStyle();
+  const { getUserData, addUserToData } = useUser();
   const users = getUserData();
+  const [showNameTick, setShowNameTick] = useState(false);
+  const [showEmailTick, setShowEmailTick] = useState(false);
 
   const [user, setUser] = useState({
-    email: '',
-    password: '',
-    name: '',
-    confirmPassword: '',
-    type: '',
-    profile: '',
+    email: "",
+    password: "",
+    name: "",
+    confirmPassword: "",
+    type: "",
+    profile: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState('login');
+  const [status, setStatus] = useState("login");
   const auth = FIREBASE_AUTH;
 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
+      "keyboardDidShow",
       () => {
         setKeyboardVisible(true); // Update state when keyboard is shown
-      },
+      }
     );
     const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
+      "keyboardDidHide",
       () => {
         setKeyboardVisible(false); // Update state when keyboard is hidden
-      },
+      }
     );
 
     // Cleanup listeners on unmount
@@ -71,7 +73,7 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
 
   const handleAuthentication = () => {
     setLoading(true);
-    if (status === 'login') {
+    if (status === "login") {
       handleLogin();
     } else {
       handleSignup();
@@ -80,18 +82,18 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
   };
 
   const handleLogin = async () => {
-    if (user.email === '' || user.password === '') {
-      showAlert('Error', 'Please fill all the fields');
+    if (user.email === "" || user.password === "") {
+      showAlert("Error", "Please fill all the fields");
       return;
     }
     try {
       const response = await signInWithEmailAndPassword(
         auth,
         user.email,
-        user.password,
+        user.password
       );
     } catch (error: any) {
-      showAlert('Error', displayErrorShort(error));
+      showAlert("Error", displayErrorShort(error));
       return;
     }
     onLogin(user.email);
@@ -101,24 +103,24 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
     const errorMessage = error.message.match(/auth\/([^).]+)/);
     const rawMessage = errorMessage
       ? errorMessage[1]
-      : 'Unknown error occurred';
-    const displayMessage = rawMessage.replace(/[-_]/g, ' ');
+      : "Unknown error occurred";
+    const displayMessage = rawMessage.replace(/[-_]/g, " ");
     return displayMessage;
   };
 
   const handleSignup = () => {
     if (user.password !== user.confirmPassword) {
-      showAlert('Error', 'Passwords do not match');
+      showAlert("Error", "Passwords do not match");
       return;
     }
     if (
-      user.name === '' ||
-      user.email === '' ||
-      user.password === '' ||
-      user.confirmPassword === '' ||
-      user.type === ''
+      user.name === "" ||
+      user.email === "" ||
+      user.password === "" ||
+      user.confirmPassword === "" ||
+      user.type === ""
     ) {
-      showAlert('Error', 'Please fill all the fields');
+      showAlert("Error", "Please fill all the fields");
       return;
     }
     handleAddUser();
@@ -140,7 +142,7 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
       const response = await createUserWithEmailAndPassword(
         auth,
         user.email,
-        user.password,
+        user.password
       );
       const doc = await addDoc(USES_REF, {
         name: user.name,
@@ -148,9 +150,9 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
         uid: response.user.uid,
         type: user.type,
       });
-      showAlert('Signed up with ', response.user.email);
+      showAlert("Signed up with ", response.user.email);
     } catch (error: any) {
-      showAlert('error', displayErrorShort(error));
+      showAlert("error", displayErrorShort(error));
       return;
     }
     addUserToData(newUser);
@@ -158,18 +160,18 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
   };
 
   const showAlert = (title: string, message: any) => {
-    Alert.alert(title, message, [{text: 'OK'}]);
+    Alert.alert(title, message, [{ text: "OK" }]);
   };
 
   return (
     <View style={[styles.container, appStyles.background]}>
       <View style={styles.logoContainer}>
-        <Image source={require('../assets/logo.png')} style={styles.logo} />
+        <Image source={require("../assets/logo.png")} style={styles.logo} />
       </View>
       <View style={styles.bodyContainer}>
         <TouchableOpacity onPress={reset}>
           <Text style={[styles.title, appStyles.text]}>
-            {status === 'login' ? 'Log in' : 'Sign up'}
+            {status === "login" ? "Log in" : "Sign up"}
           </Text>
         </TouchableOpacity>
         <Text style={[styles.textTitle, appStyles.colorText]}>
@@ -180,11 +182,15 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
             placeholder="Email ID"
             value={user.email}
             autoCapitalize="none"
-            onChangeText={text => setUser({...user, email: text})}
+            onChangeText={(text) => setUser({ ...user, email: text })}
             style={[styles.input, appStyles.text]}
             placeholderTextColor={appStyles.text}
           />
-          <Text>✅</Text>
+          {user.email.length > 0 && user.email.includes("@") ? (
+            <Text>✅</Text>
+          ) : (
+            <Text style={{ opacity: 0 }}>✅</Text>
+          )}
         </View>
         <View style={styles.line} />
         <Text style={[styles.textTitle, appStyles.colorText]}>Password</Text>
@@ -194,26 +200,37 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
             secureTextEntry={!showPassword}
             value={user.password}
             autoCapitalize="none"
-            onChangeText={text => setUser({...user, password: text})}
+            onChangeText={(text) => setUser({ ...user, password: text })}
             style={[styles.input, appStyles.text]}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Text>{showPassword ? '🔴' : '🟢'}</Text>
+            <Image
+              source={
+                !showPassword
+                  ? require("../assets/pass_show_w.png")
+                  : require("../assets/pass_hide_w.png")
+              }
+              style={styles.passImg}
+            />
           </TouchableOpacity>
         </View>
         <View style={styles.line} />
-        {status === 'signup' && (
+        {status === "signup" && (
           <>
             <Text style={[styles.textTitle, appStyles.colorText]}>Name</Text>
-            <View style={styles.nameContainer}>
+            <View style={styles.inputContainer}>
               <TextInput
                 style={[styles.input, appStyles.text]}
                 placeholderTextColor={appStyles.text}
                 placeholder="Name"
                 value={user.name}
-                onChangeText={text => setUser({...user, name: text})}
+                onChangeText={(text) => setUser({ ...user, name: text })}
               />
-              <Text>✅</Text>
+              {user.name.length > 0 ? (
+                <Text>✅</Text>
+              ) : (
+                <Text style={{ opacity: 0 }}>✅</Text>
+              )}
             </View>
             <View style={styles.line} />
             <Text style={[styles.textTitle, appStyles.colorText]}>
@@ -226,30 +243,41 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
                 value={user.confirmPassword}
                 autoCapitalize="none"
                 placeholderTextColor={appStyles.text}
-                onChangeText={text => setUser({...user, confirmPassword: text})}
+                onChangeText={(text) =>
+                  setUser({ ...user, confirmPassword: text })
+                }
                 style={[styles.input, appStyles.text]}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text>{showPassword ? '🔴' : '🟢'}</Text>
+                <Image
+                  source={
+                    !showPassword
+                      ? require("../assets/pass_show_w.png")
+                      : require("../assets/pass_hide_w.png")
+                  }
+                  style={styles.passImg}
+                />
               </TouchableOpacity>
             </View>
             <View style={styles.line} />
             <Text style={[styles.textTitle, appStyles.colorText]}>
-              Type{' '}
+              Type{" "}
               <Text style={[styles.currentTypeContainer, appStyles.text]}>
-                {' '}
+                {" "}
                 Currently: {user.type}
               </Text>
             </Text>
             <View style={styles.typeContainer}>
               <TouchableOpacity
                 style={[styles.type, appStyles.colorBackground]}
-                onPress={() => setUser({...user, type: 'Normal'})}>
+                onPress={() => setUser({ ...user, type: "Normal" })}
+              >
                 <Text style={[styles.typeText, appStyles.text]}>Normal</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.type, appStyles.colorBackground]}
-                onPress={() => setUser({...user, type: 'Specially-abled'})}>
+                onPress={() => setUser({ ...user, type: "Specially-abled" })}
+              >
                 <Text style={[styles.typeText, appStyles.text]}>
                   Specially-abled
                 </Text>
@@ -263,12 +291,13 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
           <TouchableOpacity
             onPress={handleAuthentication}
             style={[styles.btnContainer, appStyles.colorBackground]}
-            disabled={loading}>
+            disabled={loading}
+          >
             {loading ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
               <Text style={[styles.btn, appStyles.text]}>
-                {status === 'login' ? 'Login' : 'Signup'}
+                {status === "login" ? "Login" : "Signup"}
               </Text>
             )}
           </TouchableOpacity>
@@ -277,20 +306,21 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
       {!isKeyboardVisible && (
         <View style={styles.accountContainer}>
           <Text style={styles.accText}>
-            {status === 'login' ? (
+            {status === "login" ? (
               <Text>
-                Don't have an account?{' '}
+                Don't have an account?{" "}
                 <TouchableOpacity
                   onPress={() => {
-                    setStatus('signup');
-                  }}>
+                    setStatus("signup");
+                  }}
+                >
                   <Text style={styles.accBtn}>Signup</Text>
                 </TouchableOpacity>
               </Text>
             ) : (
               <Text>
-                Already have an account?{' '}
-                <TouchableOpacity onPress={() => setStatus('login')}>
+                Already have an account?{" "}
+                <TouchableOpacity onPress={() => setStatus("login")}>
                   <Text style={styles.accBtn}>Login</Text>
                 </TouchableOpacity>
               </Text>
@@ -306,65 +336,65 @@ export default function Login({onLogin, reset}: LoginProps): JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   logoContainer: {
-    height: '10%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: "10%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   logo: {
     height: 70,
     width: 80,
   },
   bodyContainer: {
-    height: '70%',
-    width: '100%',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
+    height: "70%",
+    width: "100%",
+    alignItems: "flex-start",
+    justifyContent: "center",
     padding: 15,
-    maxHeight: '70%',
+    maxHeight: "70%",
   },
   btnContainerC: {
-    height: '10%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: "10%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   btnContainer: {
     width: 170,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 15,
     paddingHorizontal: 45,
     paddingVertical: 15,
-    color: 'white',
+    color: "white",
   },
   btn: {
     fontSize: 20,
   },
   accountContainer: {
-    height: '10%',
-    textAlign: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: "10%",
+    textAlign: "center",
+    alignItems: "center",
+    justifyContent: "center",
     paddingBottom: 10,
   },
   currentTypeContainer: {
     fontSize: 10,
     opacity: 0.5,
-    textAlign: 'right',
-    width: '100%',
+    textAlign: "right",
+    width: "100%",
   },
   accText: {
-    color: '#878787',
-    justifyContent: 'center',
-    alignItems: 'center',
+    color: "#878787",
+    justifyContent: "center",
+    alignItems: "center",
   },
   accBtn: {
-    color: '#5063BF',
+    color: "#5063BF",
   },
   title: {
     fontSize: 40,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     lineHeight: 42,
     paddingVertical: 15,
   },
@@ -373,43 +403,55 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   nameContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
   },
   input: {
-    width: '90%',
+    width: "90%",
     padding: 5,
+    borderWidth: 0,
+    margin: 0,
+    backgroundColor: "transparent",
+    shadowOpacity: 0,
+    alignSelf: "center",
   },
   line: {
-    width: '95%',
-    alignSelf: 'center',
+    width: "95%",
+    alignSelf: "center",
     margin: 5,
     height: 1,
-    backgroundColor: '#878787',
+    backgroundColor: "#878787",
   },
   typeContainer: {
-    width: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  passImg: {
+    height: 20,
+    width: 20,
+    marginLeft: 10,
   },
   type: {
-    alignItems: 'center',
-    width: '50%',
+    alignItems: "center",
+    width: "50%",
     padding: 15,
     borderWidth: 2,
-    borderColor: 'black',
+    borderColor: "black",
   },
   typeText: {
     fontSize: 18,
   },
   inputContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    width: "100%",
+    // borderWidth: 1,
   },
 });
