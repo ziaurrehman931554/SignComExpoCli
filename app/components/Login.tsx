@@ -31,8 +31,6 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
   const { appStyles, theme } = useStyle();
   const { getUserData, addUserToData } = useUser();
   const users = getUserData();
-  const [showNameTick, setShowNameTick] = useState(false);
-  const [showEmailTick, setShowEmailTick] = useState(false);
 
   const [user, setUser] = useState({
     email: "",
@@ -72,18 +70,18 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
   }, []);
 
   const handleAuthentication = () => {
-    setLoading(true);
     if (status === "login") {
       handleLogin();
     } else {
       handleSignup();
     }
-    setLoading(false);
   };
 
   const handleLogin = async () => {
+    setLoading(true);
     if (user.email === "" || user.password === "") {
       showAlert("Error", "Please fill all the fields");
+      setLoading(false);
       return;
     }
     try {
@@ -94,9 +92,11 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
       );
     } catch (error: any) {
       showAlert("Error", displayErrorShort(error));
+      setLoading(false);
       return;
     }
     onLogin(user.email);
+    setLoading(false);
   };
 
   const displayErrorShort = (error: any) => {
@@ -109,8 +109,10 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
   };
 
   const handleSignup = () => {
+    setLoading(true);
     if (user.password !== user.confirmPassword) {
       showAlert("Error", "Passwords do not match");
+      setLoading(false);
       return;
     }
     if (
@@ -121,6 +123,7 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
       user.type === ""
     ) {
       showAlert("Error", "Please fill all the fields");
+      setLoading(false);
       return;
     }
     handleAddUser();
@@ -153,10 +156,12 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
       showAlert("Signed up with ", response.user.email);
     } catch (error: any) {
       showAlert("error", displayErrorShort(error));
+      setLoading(false);
       return;
     }
     addUserToData(newUser);
     onLogin(user.email);
+    setLoading(false);
   };
 
   const showAlert = (title: string, message: any) => {
@@ -186,7 +191,9 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
             style={[styles.input, appStyles.text]}
             placeholderTextColor={appStyles.text}
           />
-          {user.email.length > 0 && user.email.includes("@") ? (
+          {user.email.length > 0 &&
+          user.email.includes("@") &&
+          user.email.includes(".com") ? (
             <Text>✅</Text>
           ) : (
             <Text style={{ opacity: 0 }}>✅</Text>

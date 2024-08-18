@@ -77,6 +77,7 @@ export default function CallScreen({ navigation }: CallScreenProps) {
             placeholderTextColor={appStyles.text.color}
             placeholder="Enter Channel Name"
             value={joinID}
+            autoCapitalize="none"
             onChangeText={(Text) => {
               setJoinId(Text);
             }}
@@ -110,6 +111,7 @@ export default function CallScreen({ navigation }: CallScreenProps) {
             placeholderTextColor={appStyles.text.color}
             placeholder="Enter New Channel Name"
             value={generateID}
+            autoCapitalize="none"
             onChangeText={(Text) => {
               setGenerateId(Text);
             }}

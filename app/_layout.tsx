@@ -5,16 +5,19 @@ import AppContainer from "./AppContainer";
 import { NavigationContainer } from "@react-navigation/native";
 import { SplashScreen } from "expo-router";
 import { View } from "react-native";
-SplashScreen.preventAutoHideAsync();
+import { SafeAreaProvider } from "react-native-safe-area-context";
+// SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
     <NavigationContainer independent={true}>
-      <AppProvider>
-        <View style={{ flex: 1, maxWidth: 390 }}>
-          <AppContainer />
-        </View>
-      </AppProvider>
+      <SafeAreaProvider>
+        <AppProvider>
+          <View style={{ flex: 1, maxWidth: 410 }}>
+            <AppContainer />
+          </View>
+        </AppProvider>
+      </SafeAreaProvider>
     </NavigationContainer>
   );
 }
