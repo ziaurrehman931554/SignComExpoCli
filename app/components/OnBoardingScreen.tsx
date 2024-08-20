@@ -13,6 +13,7 @@ import {
   StyleSheet,
   ImageBackground,
   StatusBar,
+  Platform,
 } from "react-native";
 
 interface OnBoardingData {
@@ -68,10 +69,14 @@ const OnBoardingScreen: React.FC<OnBoardingScreenProps> = ({ onComplete }) => {
 
   const renderItem = ({ item }: { item: OnBoardingData }) => {
     return (
-      <View style={{ width: Dimensions.get("window").width }}>
+      <View
+        style={{
+          width: Platform.OS === "web" ? 375 : Dimensions.get("window").width,
+        }}
+      >
         <Image
           source={item.imageSource}
-          style={{ width: "100%", height: 300 }}
+          style={{ width: 300, height: 300, alignSelf: "center" }}
         />
         <Text
           style={[
@@ -212,7 +217,9 @@ const OnBoardingScreen: React.FC<OnBoardingScreenProps> = ({ onComplete }) => {
               <View
                 style={[
                   styles.button,
-                  activeIndex !== OnBoardingData.length
+                  Platform.OS === "web"
+                    ? appStyles.colorBackground
+                    : activeIndex !== OnBoardingData.length
                     ? styles.black
                     : appStyles.colorBackground,
                 ]}

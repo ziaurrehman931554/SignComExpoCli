@@ -46,4 +46,5 @@ body {
 body {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  max-width: 375px;
 }`;
