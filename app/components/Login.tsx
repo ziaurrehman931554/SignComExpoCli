@@ -14,6 +14,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
 } from "react-native";
 import { StatusBar } from "react-native";
 import { useStyle, useUser } from "../AppContext";
@@ -85,10 +86,6 @@ export default function Login({
   }, []);
 
   const handleAuthentication = () => {
-    console.log(
-      "handleAuthentication called and the current state is: ",
-      status
-    );
     if (status === "login") {
       handleLogin();
     } else {
@@ -240,10 +237,22 @@ export default function Login({
         style={styles.bodyContainer}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollViewContainer}
+          contentContainerStyle={[
+            styles.scrollViewContainer,
+            { width: "100%" },
+          ]}
           showsVerticalScrollIndicator={false}
         >
-          <View style={{ height: "100%", justifyContent: "center" }}>
+          <View
+            style={{
+              height: "100%",
+              width:
+                Platform.OS === "web"
+                  ? (Dimensions.get("window").width * 90) / 100
+                  : "auto",
+              justifyContent: "center",
+            }}
+          >
             <TouchableOpacity onPress={reset}>
               <Text style={[styles.title, appStyles.text]}>
                 {status === "login" ? "Log in" : "Sign up"}
