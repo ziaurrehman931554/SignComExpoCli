@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,9 @@ import {
   ActivityIndicator,
   Alert,
   Keyboard,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { StatusBar } from "react-native";
 import { useStyle, useUser } from "../AppContext";
@@ -19,17 +22,29 @@ import { FIREBASE_AUTH, USES_REF } from "../FirebaseConfig";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
-import { addDoc } from "firebase/firestore";
+import { addDoc, doc, getDoc, setDoc } from "firebase/firestore";
 
 interface LoginProps {
   onLogin: (email: string) => void;
   reset: () => void;
+  onLogout: any;
 }
 
-export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
+export default function Login({
+  onLogin,
+  reset,
+  onLogout,
+}: LoginProps): JSX.Element {
   const { appStyles, theme } = useStyle();
-  const { getUserData, addUserToData } = useUser();
+  const {
+    getUserData,
+    addUserToData,
+    removeUserFromData,
+    setRootLoading,
+    updateUserByEmail,
+  } = useUser();
   const users = getUserData();
 
   const [user, setUser] = useState({
@@ -70,6 +85,10 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
   }, []);
 
   const handleAuthentication = () => {
+    console.log(
+      "handleAuthentication called and the current state is: ",
+      status
+    );
     if (status === "login") {
       handleLogin();
     } else {
@@ -85,18 +104,46 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
       return;
     }
     try {
+      onLogin(user.email);
+      let newUser = {
+        email: user.email,
+        name: "",
+        type: "",
+        uid: "",
+        profile: "",
+        favorites: [],
+        recent: [],
+        setting: [],
+        password: user.password,
+      };
+      addUserToData(newUser); // Add the fetched data to your user context
       const response = await signInWithEmailAndPassword(
         auth,
         user.email,
         user.password
       );
+      setRootLoading(true);
+
+      // Fetch the user document from Fire store using the uid
+      const userDocRef = doc(USES_REF, response.user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        newUser.name = userData.name;
+        newUser.type = userData.type;
+        newUser.profile = userData.profile || "";
+        newUser.uid = userData.uid;
+        updateUserByEmail(userData.email, newUser);
+      }
     } catch (error: any) {
+      onLogout();
+      removeUserFromData(user.email);
       showAlert("Error", displayErrorShort(error));
+    } finally {
+      setRootLoading(false);
       setLoading(false);
-      return;
     }
-    onLogin(user.email);
-    setLoading(false);
   };
 
   const displayErrorShort = (error: any) => {
@@ -139,101 +186,84 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
       profile: user.profile,
       favorites: [],
       recent: [],
-      setting: [], // Fix: Change 'setting' to an empty array
+      setting: [],
     };
     try {
+      addUserToData(newUser);
+      onLogin(user.email);
       const response = await createUserWithEmailAndPassword(
         auth,
         user.email,
         user.password
       );
-      const doc = await addDoc(USES_REF, {
+      setRootLoading(true);
+      await updateProfile(response.user, {
+        displayName: user.name,
+        photoURL: "",
+      });
+      await setDoc(doc(USES_REF, response.user.uid), {
         name: user.name,
         email: response.user.email,
         uid: response.user.uid,
         type: user.type,
       });
-      showAlert("Signed up with ", response.user.email);
     } catch (error: any) {
+      removeUserFromData(user.email);
+      onLogout();
       showAlert("error", displayErrorShort(error));
       setLoading(false);
       return;
+    } finally {
+      setRootLoading(false);
+      setLoading(false);
     }
-    addUserToData(newUser);
-    onLogin(user.email);
-    setLoading(false);
   };
+
+  const handlePressOutside = useCallback(() => {
+    Keyboard.dismiss(); // Hide the keyboard
+  }, []);
 
   const showAlert = (title: string, message: any) => {
     Alert.alert(title, message, [{ text: "OK" }]);
   };
 
   return (
-    <View style={[styles.container, appStyles.background]}>
+    <View
+      style={[styles.container, appStyles.background]}
+      onTouchStart={handlePressOutside}
+    >
       <View style={styles.logoContainer}>
         <Image source={require("../assets/logo.png")} style={styles.logo} />
       </View>
-      <View style={styles.bodyContainer}>
-        <TouchableOpacity onPress={reset}>
-          <Text style={[styles.title, appStyles.text]}>
-            {status === "login" ? "Log in" : "Sign up"}
-          </Text>
-        </TouchableOpacity>
-        <Text style={[styles.textTitle, appStyles.colorText]}>
-          Email Address
-        </Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder="Email ID"
-            value={user.email}
-            autoCapitalize="none"
-            onChangeText={(text) => setUser({ ...user, email: text })}
-            style={[styles.input, appStyles.text]}
-            placeholderTextColor={appStyles.text}
-          />
-          {user.email.length > 0 &&
-          user.email.includes("@") &&
-          user.email.includes(".com") ? (
-            <Text>✅</Text>
-          ) : (
-            <Text style={{ opacity: 0 }}>✅</Text>
-          )}
-        </View>
-        <View style={styles.line} />
-        <Text style={[styles.textTitle, appStyles.colorText]}>Password</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder="Password"
-            secureTextEntry={!showPassword}
-            value={user.password}
-            autoCapitalize="none"
-            onChangeText={(text) => setUser({ ...user, password: text })}
-            style={[styles.input, appStyles.text]}
-          />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Image
-              source={
-                !showPassword
-                  ? require("../assets/pass_show_w.png")
-                  : require("../assets/pass_hide_w.png")
-              }
-              style={styles.passImg}
-            />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.line} />
-        {status === "signup" && (
-          <>
-            <Text style={[styles.textTitle, appStyles.colorText]}>Name</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "height" : "height"}
+        style={styles.bodyContainer}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollViewContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={{ height: "100%", justifyContent: "center" }}>
+            <TouchableOpacity onPress={reset}>
+              <Text style={[styles.title, appStyles.text]}>
+                {status === "login" ? "Log in" : "Sign up"}
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.textTitle, appStyles.colorText]}>
+              Email Address
+            </Text>
             <View style={styles.inputContainer}>
               <TextInput
+                placeholder="Email ID"
+                value={user.email}
+                autoCapitalize="none"
+                onChangeText={(text) => setUser({ ...user, email: text })}
                 style={[styles.input, appStyles.text]}
                 placeholderTextColor={appStyles.text}
-                placeholder="Name"
-                value={user.name}
-                onChangeText={(text) => setUser({ ...user, name: text })}
               />
-              {user.name.length > 0 ? (
+              {user.email.length > 0 &&
+              user.email.includes("@") &&
+              user.email.includes(".com") ? (
                 <Text>✅</Text>
               ) : (
                 <Text style={{ opacity: 0 }}>✅</Text>
@@ -241,18 +271,15 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
             </View>
             <View style={styles.line} />
             <Text style={[styles.textTitle, appStyles.colorText]}>
-              Confirm Password
+              Password
             </Text>
             <View style={styles.inputContainer}>
               <TextInput
-                placeholder="Confirm Password"
+                placeholder="Password"
                 secureTextEntry={!showPassword}
-                value={user.confirmPassword}
+                value={user.password}
                 autoCapitalize="none"
-                placeholderTextColor={appStyles.text}
-                onChangeText={(text) =>
-                  setUser({ ...user, confirmPassword: text })
-                }
+                onChangeText={(text) => setUser({ ...user, password: text })}
                 style={[styles.input, appStyles.text]}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -267,32 +294,96 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
               </TouchableOpacity>
             </View>
             <View style={styles.line} />
-            <Text style={[styles.textTitle, appStyles.colorText]}>
-              Type{" "}
-              <Text style={[styles.currentTypeContainer, appStyles.text]}>
-                {" "}
-                Currently: {user.type}
-              </Text>
-            </Text>
-            <View style={styles.typeContainer}>
-              <TouchableOpacity
-                style={[styles.type, appStyles.colorBackground]}
-                onPress={() => setUser({ ...user, type: "Normal" })}
-              >
-                <Text style={[styles.typeText, appStyles.text]}>Normal</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.type, appStyles.colorBackground]}
-                onPress={() => setUser({ ...user, type: "Specially-abled" })}
-              >
-                <Text style={[styles.typeText, appStyles.text]}>
-                  Specially-abled
+            {status === "signup" && (
+              <>
+                <Text style={[styles.textTitle, appStyles.colorText]}>
+                  Name
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-      </View>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.input, appStyles.text]}
+                    placeholderTextColor={appStyles.text}
+                    placeholder="Name"
+                    value={user.name}
+                    onChangeText={(text) => setUser({ ...user, name: text })}
+                  />
+                  {user.name.length > 0 ? (
+                    <Text>✅</Text>
+                  ) : (
+                    <Text style={{ opacity: 0 }}>✅</Text>
+                  )}
+                </View>
+                <View style={styles.line} />
+                <Text style={[styles.textTitle, appStyles.colorText]}>
+                  Confirm Password
+                </Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    placeholder="Confirm Password"
+                    secureTextEntry={!showPassword}
+                    value={user.confirmPassword}
+                    autoCapitalize="none"
+                    placeholderTextColor={appStyles.text}
+                    onChangeText={(text) =>
+                      setUser({ ...user, confirmPassword: text })
+                    }
+                    style={[styles.input, appStyles.text]}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    <Image
+                      source={
+                        !showPassword
+                          ? require("../assets/pass_show_w.png")
+                          : require("../assets/pass_hide_w.png")
+                      }
+                      style={styles.passImg}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.line} />
+                <Text style={[styles.textTitle, appStyles.colorText]}>
+                  Type{" "}
+                  <Text style={[styles.currentTypeContainer, appStyles.text]}>
+                    {" "}
+                    Currently: {user.type}
+                  </Text>
+                </Text>
+                <View style={styles.typeContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.type,
+                      { borderColor: theme === "light" ? "black" : "white" },
+                      user.type === "Normal" && appStyles.colorBackground,
+                    ]}
+                    onPress={() => setUser({ ...user, type: "Normal" })}
+                  >
+                    <Text style={[styles.typeText, appStyles.text]}>
+                      Normal
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.type,
+                      { borderColor: theme === "light" ? "black" : "white" },
+                      user.type === "Specially-abled" &&
+                        appStyles.colorBackground,
+                    ]}
+                    onPress={() =>
+                      setUser({ ...user, type: "Specially-abled" })
+                    }
+                  >
+                    <Text style={[styles.typeText, appStyles.text]}>
+                      Specially-abled
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
       {!isKeyboardVisible && (
         <View style={styles.btnContainerC}>
           <TouchableOpacity
@@ -341,6 +432,10 @@ export default function Login({ onLogin, reset }: LoginProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  scrollViewContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
   container: {
     flex: 1,
     alignItems: "center",
@@ -355,12 +450,12 @@ const styles = StyleSheet.create({
     width: 80,
   },
   bodyContainer: {
-    height: "70%",
+    height: "75%",
     width: "100%",
     alignItems: "flex-start",
     justifyContent: "center",
-    padding: 15,
-    maxHeight: "70%",
+    paddingHorizontal: 15,
+    maxHeight: "75%",
   },
   btnContainerC: {
     height: "10%",
@@ -379,11 +474,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   accountContainer: {
-    height: "10%",
+    height: "5%",
     textAlign: "center",
     alignItems: "center",
     justifyContent: "center",
-    paddingBottom: 10,
+    paddingBottom: 13,
   },
   currentTypeContainer: {
     fontSize: 10,
@@ -437,6 +532,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
+    gap: 5,
   },
   passImg: {
     height: 20,
@@ -445,10 +541,13 @@ const styles = StyleSheet.create({
   },
   type: {
     alignItems: "center",
-    width: "50%",
-    padding: 15,
-    borderWidth: 2,
-    borderColor: "black",
+    gap: 5,
+    width: "45%",
+    padding: 5,
+    height: 50,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderRadius: 50,
   },
   typeText: {
     fontSize: 18,

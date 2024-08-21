@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,9 @@ import {
   TextInput,
   KeyboardAvoidingView,
   ImageBackground,
+  Keyboard,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 import { useStyle } from "../AppContext";
 
@@ -22,6 +25,8 @@ interface RouteParams extends RouteProp<ParamListBase, string> {
 interface CallScreenProps {
   navigation: any;
 }
+
+const height = (Dimensions.get("window").height * 78) / 100;
 
 export default function CallScreen({ navigation }: CallScreenProps) {
   const { appStyles, theme } = useStyle();
@@ -39,93 +44,128 @@ export default function CallScreen({ navigation }: CallScreenProps) {
     }
   };
 
+  const handlePressOutside = useCallback(() => {
+    Keyboard.dismiss(); // Hide the keyboard
+  }, []);
+
+  useEffect(() => {
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        handlePressOutside();
+      }
+    );
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        // scrollToBottom();
+      }
+    );
+
+    // Cleanup listener on unmount
+    return () => {
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollToBottom = () => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  };
+
   return (
-    <KeyboardAvoidingView style={styles.container}>
-      <ImageBackground
-        source={require("../assets/background.png")}
-        style={[appStyles.container, appStyles.top]}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.navigate("Home")}>
-            <View style={[styles.backContainer, appStyles.colorBackground]}>
+    <ImageBackground
+      source={require("../assets/background.png")}
+      style={[appStyles.container, appStyles.top]}
+    >
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+          <View style={[styles.backContainer, appStyles.colorBackground]}>
+            <Image
+              source={
+                theme === "light"
+                  ? require("../assets/back_w.png")
+                  : require("../assets/back_b.png")
+              }
+              style={styles.back}
+            />
+          </View>
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Make a Call</Text>
+      </View>
+      <KeyboardAvoidingView behavior="padding">
+        <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
+          <View style={styles.joinContainer}>
+            <Text style={styles.title}>Join Existing Channel</Text>
+            <View style={[styles.imgContainer, appStyles.containerBack]}>
               <Image
                 source={
                   theme === "light"
-                    ? require("../assets/back_w.png")
-                    : require("../assets/back_b.png")
+                    ? require("../assets/incoming_b.png")
+                    : require("../assets/incoming_w.png")
                 }
-                style={styles.back}
+                style={styles.img}
               />
             </View>
-          </TouchableOpacity>
-          <Text style={styles.headerText}>Make a Call</Text>
-        </View>
-        <View style={styles.joinContainer}>
-          <Text style={styles.title}>Join Existing Channel</Text>
-          <View style={[styles.imgContainer, appStyles.containerBack]}>
-            <Image
-              source={
-                theme === "light"
-                  ? require("../assets/incoming_b.png")
-                  : require("../assets/incoming_w.png")
-              }
-              style={styles.img}
+            <TextInput
+              style={[styles.input, appStyles.containerBack, appStyles.text]}
+              placeholderTextColor={appStyles.text.color}
+              placeholder="Enter Channel Name"
+              value={joinID}
+              autoCapitalize="none"
+              onChangeText={(Text) => {
+                setJoinId(Text);
+              }}
             />
+            <TouchableOpacity
+              style={[styles.btn, appStyles.colorBackground]}
+              onPress={HandleJoin}
+            >
+              <Text style={[styles.btnText, appStyles.text]}>
+                Join {u && <Text>{u}</Text>}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TextInput
-            style={[styles.input, appStyles.containerBack, appStyles.text]}
-            placeholderTextColor={appStyles.text.color}
-            placeholder="Enter Channel Name"
-            value={joinID}
-            autoCapitalize="none"
-            onChangeText={(Text) => {
-              setJoinId(Text);
-            }}
-          />
-          <TouchableOpacity
-            style={[styles.btn, appStyles.colorBackground]}
-            onPress={HandleJoin}
-          >
-            <Text style={[styles.btnText, appStyles.text]}>
-              Join {u && <Text>{u}</Text>}
+          <View style={styles.line}></View>
+          <View style={styles.joinContainer}>
+            <Text style={styles.title}>
+              Generate New Channel {u && <Text>for {u}</Text>}
             </Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.line}></View>
-        <View style={styles.joinContainer}>
-          <Text style={styles.title}>
-            Generate New Channel {u && <Text>for {u}</Text>}
-          </Text>
-          <View style={[styles.imgContainer, appStyles.containerBack]}>
-            <Image
-              source={
-                theme === "light"
-                  ? require("../assets/outgoing_b.png")
-                  : require("../assets/outgoing_w.png")
-              }
-              style={styles.img}
+            <View style={[styles.imgContainer, appStyles.containerBack]}>
+              <Image
+                source={
+                  theme === "light"
+                    ? require("../assets/outgoing_b.png")
+                    : require("../assets/outgoing_w.png")
+                }
+                style={styles.img}
+              />
+            </View>
+            <TextInput
+              style={[styles.input, appStyles.containerBack, appStyles.text]}
+              placeholderTextColor={appStyles.text.color}
+              placeholder="Enter New Channel Name"
+              value={generateID}
+              autoCapitalize="none"
+              onChangeText={(Text) => {
+                setGenerateId(Text);
+              }}
+              // onFocus={() => scrollToBottom()}
             />
+            <TouchableOpacity
+              style={[styles.btn, appStyles.colorBackground]}
+              onPress={HandleJoin}
+            >
+              <Text style={[styles.btnText, appStyles.text]}>
+                Create & Join
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TextInput
-            style={[styles.input, appStyles.containerBack, appStyles.text]}
-            placeholderTextColor={appStyles.text.color}
-            placeholder="Enter New Channel Name"
-            value={generateID}
-            autoCapitalize="none"
-            onChangeText={(Text) => {
-              setGenerateId(Text);
-            }}
-          />
-          <TouchableOpacity
-            style={[styles.btn, appStyles.colorBackground]}
-            onPress={HandleJoin}
-          >
-            <Text style={[styles.btnText, appStyles.text]}>Create & Join</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.addPad}></View>
-      </ImageBackground>
-    </KeyboardAvoidingView>
+          {/* <View style={styles.addPad}></View> */}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 
@@ -137,7 +177,7 @@ const styles = StyleSheet.create({
   },
   addPad: {
     width: "100%",
-    height: 100,
+    height: 92,
   },
   header: {
     display: "flex",
@@ -171,7 +211,7 @@ const styles = StyleSheet.create({
   },
   joinContainer: {
     width: "100%",
-    height: "40%",
+    height: height / 2,
     alignItems: "center",
     justifyContent: "center",
   },

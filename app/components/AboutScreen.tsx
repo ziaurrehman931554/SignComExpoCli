@@ -39,7 +39,10 @@ export default function AboutScreen({ navigation }: AboutScreenProps) {
         <View style={styles.logoContainer}>
           <Image source={require("../assets/logo.png")} style={styles.logo} />
         </View>
-        <ScrollView style={styles.textContainer}>
+        <ScrollView
+          style={styles.textContainer}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.text}>{aboutDescription}</Text>
         </ScrollView>
       </View>

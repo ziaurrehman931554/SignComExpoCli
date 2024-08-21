@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -28,14 +28,27 @@ import { useUser, useStyle } from "../AppContext";
 interface HomeScreenProps {
   userToken: any;
   navigation: any;
+  onLogout: any;
 }
 
-export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
+export default function HomeScreen({
+  userToken,
+  navigation,
+  onLogout,
+}: HomeScreenProps) {
   const { appStyles, theme } = useStyle();
-  const { searchText, setSearchText, updateUserByEmail } = useUser();
+  const { updateUserByEmail } = useUser();
+  const [searchText, setSearchText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [filteredRecent, setFilteredRecent] = useState(userToken.recent);
 
-  // Define known date formats
+  useEffect(() => {
+    const filteredRec = userToken.recent.filter((item: any) =>
+      item.Name.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setFilteredRecent(filteredRec);
+  }, [searchText, userToken.recent]);
+
   const knownFormats = ["M/d/yyyy, h:mm:ss a", "yyyy-MM-ddTHH:mm:ssZ"];
 
   const formatDate = (dateString: string) => {
@@ -206,25 +219,36 @@ export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
             onChangeText={(text) => setSearchText(text)}
             value={searchText}
           />
+          <TouchableOpacity
+            onPress={() => setSearchText("")}
+            disabled={searchText === "" ? true : false}
+          >
+            <Image
+              source={require("../assets/cancel_b.png")}
+              style={[
+                // styles.search,
+                { opacity: searchText === "" ? 0 : 1, height: 15, width: 15 },
+              ]}
+            />
+          </TouchableOpacity>
         </View>
       </View>
-      {!userToken.favorites &&
-        !userToken.recent(
-          <View
-            style={[
-              appStyles.container,
-              {
-                alignItems: "center",
-                justifyContent: "center",
-                marginTop: -90,
-              },
-            ]}
-          >
-            <Text style={[appStyles.text, { fontSize: 17, letterSpacing: 3 }]}>
-              No Recent Calls
-            </Text>
-          </View>
-        )}
+      {!userToken.favorites && !userToken.recent && (
+        <View
+          style={[
+            appStyles.container,
+            {
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: -90,
+            },
+          ]}
+        >
+          <Text style={[appStyles.text, { fontSize: 17, letterSpacing: 3 }]}>
+            No Recent Calls
+          </Text>
+        </View>
+      )}
       <ScrollView style={styles.bodyContainer}>
         {userToken.favorites.length > 0 && !searchText && (
           <View style={styles.favoritesContainer}>
@@ -284,6 +308,46 @@ export default function HomeScreen({ userToken, navigation }: HomeScreenProps) {
               </View>
             </View>
             <View>{renderRecent()}</View>
+          </View>
+        )}
+        {searchText && (
+          <View>
+            <Text style={[styles.headingText, appStyles.text]}>
+              Search Results
+            </Text>
+            <View>
+              {filteredRecent.map((item: any) => (
+                <TouchableOpacity
+                  style={[
+                    styles.recent_container,
+                    appStyles.containerBack,
+                    {
+                      borderColor: theme === "dark" ? "#979797" : "black",
+                      width: "95%",
+                    },
+                  ]}
+                  key={item.Name}
+                  onPress={() =>
+                    !isEditing && navigation.navigate("Call", { user: item })
+                  }
+                >
+                  <View style={styles.recent_img}>
+                    <Image
+                      source={require("../assets/Profile.png")}
+                      style={styles.recent_profileImage}
+                    />
+                  </View>
+                  <View style={styles.recent_data}>
+                    <Text style={[styles.recent_data_name, appStyles.text]}>
+                      {item.Name}
+                    </Text>
+                    <Text style={[styles.recent_data_time, appStyles.text]}>
+                      {formatDate(item.last_call)}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         )}
         <View style={styles.addPad}></View>
@@ -465,6 +529,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "flex-start",
+    // width: "100%",
     alignItems: "center",
     padding: 15,
     borderWidth: 1,

@@ -35,10 +35,16 @@ interface HomeProps {
 
 export default function Home({ onLogout, userToken }: HomeProps) {
   const { findUserByEmail, updateUserByEmail } = useUser();
-  const users: any = findUserByEmail(userToken);
+  const users: any = findUserByEmail(userToken || "zr931554@gmail.com");
 
   function CallHome({ navigation }: any) {
-    return <HomeScreen userToken={users} navigation={navigation} />;
+    return (
+      <HomeScreen
+        userToken={users}
+        navigation={navigation}
+        onLogout={onLogout}
+      />
+    );
   }
 
   function CallCall({ navigation, route }: any) {

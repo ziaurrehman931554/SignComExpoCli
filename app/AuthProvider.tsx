@@ -1,7 +1,7 @@
-import React, {createContext, useState, useEffect, ReactNode} from 'react';
-import {onAuthStateChanged, signOut, User} from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {FIREBASE_AUTH} from './FirebaseConfig';
+import React, { createContext, useState, useEffect, ReactNode } from "react";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FIREBASE_AUTH } from "./FirebaseConfig";
 
 interface AuthContextProps {
   user: User | null;
@@ -16,10 +16,10 @@ interface AuthProviderProps {
 }
 
 export const AuthContext = createContext<AuthContextProps | undefined>(
-  undefined,
+  undefined
 );
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [checking, setChecking] = useState<boolean>(true);
@@ -27,27 +27,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem('userToken');
+        const storedToken = await AsyncStorage.getItem("userToken");
         if (storedToken) {
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);
         }
       } catch (error) {
-        console.error('Error checking authentication:', error);
+        console.error("Error checking authentication:", error);
       }
     };
     checkAuthentication();
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, user => {
+    const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (user) => {
       setUser(user);
       if (user) {
-        AsyncStorage.setItem('userToken', user.email || '');
+        AsyncStorage.setItem("userToken", user.email || "");
         setIsAuthenticated(true);
       } else {
-        AsyncStorage.removeItem('userToken');
+        AsyncStorage.removeItem("userToken");
         setIsAuthenticated(false);
       }
     });
@@ -57,19 +57,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
   }, []);
 
   const handleLogin = async (email: string) => {
-    await AsyncStorage.setItem('userToken', email);
+    await AsyncStorage.setItem("userToken", email);
     setIsAuthenticated(true);
   };
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('userToken');
+    await AsyncStorage.removeItem("userToken");
     setIsAuthenticated(false);
     await signOut(FIREBASE_AUTH);
   };
 
   return (
     <AuthContext.Provider
-      value={{user, isAuthenticated, handleLogin, handleLogout, checking}}>
+      value={{ user, isAuthenticated, handleLogin, handleLogout, checking }}
+    >
       {children}
     </AuthContext.Provider>
   );
