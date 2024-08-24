@@ -17,9 +17,7 @@ export default function CallingScreen({
 }: CallingScreenProps) {
   const { id } = route.params || {};
   const [channelName, setChannelName] = useState("");
-  const baseUrl = "https://192.168.100.3";
-  // const baseUrl = "https://192.168.109.1";
-  // const baseUrl = "https://172.20.10.11";
+  const baseUrl = "https://localhost";
   const [url, setUrl] = useState(baseUrl);
   const [handleSwitch, setHandleSwitch] = useState(false);
   const option = userToken.type === "normal" ? "gesture" : "speech";
@@ -30,6 +28,7 @@ export default function CallingScreen({
     setUrl(`${url}/via/${id}/${option}`);
     setChannelName(id);
     setHandleSwitch(true);
+    console.log("_________________ current url:", url);
   }, [id]);
 
   const handleNavigationStateChange = (navState: any) => {

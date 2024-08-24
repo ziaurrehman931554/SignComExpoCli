@@ -95,6 +95,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ],
       setting: [],
     },
+    {
+      email: "special@gmail.com",
+      password: "Asdfghjkl",
+      name: "Special user",
+      type: "Specially-abled",
+      profile: "../assets/profile.png",
+      favorites: [],
+      recent: [],
+      setting: [],
+    },
   ]);
   const [searchText, setSearchText] = useState("");
   const [rootLoading, setRootLoading] = useState(false);

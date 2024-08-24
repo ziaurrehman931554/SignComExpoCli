@@ -233,7 +233,7 @@ export default function HomeScreen({
           </TouchableOpacity>
         </View>
       </View>
-      {!userToken.favorites && !userToken.recent && (
+      {userToken.favorites.length == 0 && userToken.recent == 0 && (
         <View
           style={[
             appStyles.container,
